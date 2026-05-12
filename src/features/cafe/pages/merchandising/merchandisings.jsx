@@ -1,7 +1,7 @@
 import { ProductsGrid } from '../../components/products-grid';
 import { ProductsSection } from '../../components/products-section';
 
-export const AccesoriosPage = () => {
+export const MerchandisingsPage = () => {
   const buttonItems = [
     {
       btnId: 'btn-todos',
@@ -23,8 +23,11 @@ export const AccesoriosPage = () => {
 
   return (
     <section id="productos-section" className="pt-36 pb-20">
-      <ProductsSection title="Nuestros Accesorios" buttonItems={buttonItems} />
-      <ProductsGrid productType="accesorio" />
+      <ProductsSection
+        title="Nuestro Merchandising"
+        buttonItems={buttonItems}
+      />
+      <ProductsGrid productType="merchandising" />
     </section>
   );
 };

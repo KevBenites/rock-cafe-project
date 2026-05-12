@@ -1,39 +1,54 @@
-import { Link, useNavigate } from 'react-router';
-import { LoginInputGroup } from '../components/login-input-group';
-import { Logo } from '../../../common/components/logo/logo';
-import { useAuthStore } from '../store/auth-store';
 import { useState } from 'react';
 
-export const LoginPage = () => {
-  const navigate = useNavigate();
-  const { login } = useAuthStore();
+import { Logo } from '../../../common/components/logo/logo';
+import { LoginInputGroup } from '../components/login-input-group';
+import { useNavigate } from 'react-router';
+import { useAuthStore } from '../store/auth-store';
 
+export const RegisterPage = () => {
+  const navigate = useNavigate();
+  const { register } = useAuthStore();
   const [isPosting, setIsPosting] = useState(false);
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    setIsPosting(true);
+  const handleRegister = async (e) => {
+    e.preventDefault();
 
-    const formData = new FormData(event.target);
-    const email = formData.get('email');
-    const password = formData.get('password');
+    try {
+      setIsPosting(true);
 
-    const isValid = await login({ email, password });
+      const formData = new FormData(e.target);
+      const email = formData.get('email');
+      const password = formData.get('password');
+      const nombre = formData.get('nombre');
+      const apellido = formData.get('apellido');
 
-    if (isValid) {
-      navigate('/');
-      return;
+      const response = await register({
+        email,
+        password,
+        nombre,
+        apellido,
+      });
+
+      if (!response.ok) {
+        alert(response.message);
+        return;
+      }
+
+      navigate('/auth/login');
+    } catch (error) {
+      console.log(error);
+
+      alert('Ocurrió un error inesperado');
+    } finally {
+      setIsPosting(false);
     }
-
-    alert('Correo o/y contraseña no validos');
-    setIsPosting(false);
   };
 
   return (
     <div className="flex flex-col font-sans">
       <div className="overflow-hidden p-0 border-[1.5px] border-black/55 shadow-sm rounded-xl">
         <div className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleLogin}>
+          <form className="p-6 md:p-8" onSubmit={handleRegister}>
             <div className="flex flex-col gap-5">
               <div className="flex flex-col items-center text-center">
                 <Logo subtitle="Café" size="3xl" />
@@ -63,6 +78,24 @@ export const LoginPage = () => {
                 nameInput="password"
                 required
               />
+
+              <LoginInputGroup
+                labelContent="Nombre"
+                placeholderContent="Primer nombre"
+                idFor="nombre"
+                typeInput="nombre"
+                nameInput="nombre"
+                required
+              />
+
+              <LoginInputGroup
+                labelContent="Apellido"
+                placeholderContent="Apellido paterno"
+                idFor="apellido"
+                typeInput="apellido"
+                nameInput="apellido"
+                required
+              />
               <button
                 type="submit"
                 disabled={isPosting}
@@ -76,17 +109,8 @@ export const LoginPage = () => {
                 }
               `}
               >
-                {isPosting ? 'Ingresando...' : 'Ingresar'}
+                {isPosting ? 'Registrando...' : 'Registrar'}
               </button>
-              <div className="text-center text-sm">
-                ¿No tienes cuenta?{' '}
-                <Link
-                  to="/auth/register"
-                  className="underline underline-offset-4"
-                >
-                  Registrate
-                </Link>
-              </div>
             </div>
           </form>
           <div className="relative hidden bg-muted md:block">

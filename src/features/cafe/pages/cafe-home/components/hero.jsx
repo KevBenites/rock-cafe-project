@@ -17,7 +17,7 @@ export function Hero({ title, subtitle }) {
         </p>
         <Link
           className="bg-amber-400 rounded-4xl px-6 py-3 uppercase text-sm text-black font-semibold animate-fadeUp [--duration:4s] cursor-pointer transition-all duration-500 transform hover:text-white hover:-translate-y-2 hover:bg-amber-800 hover:scale-110"
-          to="/nuestro-cafe"
+          to="/shop/nuestro-cafe"
         >
           Ver Productos
         </Link>

@@ -1,16 +1,33 @@
-import { productos } from '../mocks/productos';
+import { Pagination } from '../../../common/components/pagination/pagination';
+import { useProducts } from '../hooks/use-products';
 import { ProductCard } from './product-card';
 
 export function ProductsGrid({ productType }) {
-  const productosCafe = productos.filter(
-    (producto) => producto.categoria === productType,
-  );
+  const { data, isLoading, error } = useProducts(productType);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[70vh] flex items-center justify-center">
+        <span className="text-3xl font-bold">Cargando ☕...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  const productos = data.data;
+  const paginacion = data.pagination;
 
   return (
-    <div className="w-[90%] mx-auto grid grid-cols-1 grid-rows-6 md:grid-cols-2 md:grid-rows-3 xl:grid-cols-3 xl:grid-rows-2 gap-x-10 gap-y-10 mt-20 mb-20">
-      {productosCafe.map((producto) => (
-        <ProductCard key={producto.id} producto={producto} />
-      ))}
+    <div className="w-[90%] mx-auto mt-14 mb-14">
+      <div className="flex flex-wrap gap-12 justify-center">
+        {productos.map((producto) => (
+          <ProductCard key={producto.id} producto={producto} />
+        ))}
+      </div>
+      <Pagination totalProducts={paginacion.total} />
     </div>
   );
 }

@@ -1,9 +1,7 @@
-import axios from 'axios';
+import { apiCafe } from '../../../../../common/api/api-cafe';
 
 export const getCafeById = async (id) => {
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  const { data } = await axios.get(`${API_URL}/products/${id}`);
+  const { data } = await apiCafe.get(`/products/${id}`);
 
   return data;
 };

@@ -28,16 +28,6 @@ export function Footer() {
           </div>
           <div className="flex flex-1 flex-col gap-1">
             <p className="uppercase tracking-[1px] text-base font-grotesque mb-1">
-              Cursos
-            </p>
-            <ul>
-              <li className="text-sm mb-1">Talleres</li>
-              <li className="text-sm mb-1">Curso de Barista</li>
-              <li className="text-sm">Catación</li>
-            </ul>
-          </div>
-          <div className="flex flex-1 flex-col gap-1">
-            <p className="uppercase tracking-[1px] text-base font-grotesque mb-1">
               Contacto
             </p>
             <ul>

@@ -1,17 +1,19 @@
-import { useParams } from 'react-router';
-import { useCafe } from './hooks/useCafe';
+import { useNavigate, useParams } from 'react-router';
+import { useCafeById } from './hooks/use-cafe-by-id';
 import { useState } from 'react';
+import { useAddCartItem } from '../compra/hook/use-add-cart-item';
 
 export const CafePage = () => {
   const { idCafe } = useParams();
-  const { data: producto, isLoading, error } = useCafe(idCafe);
+  const navigate = useNavigate();
 
-  const [molienda, setMolienda] = useState('Grano');
-  const [peso, setPeso] = useState('250g');
+  const { data: producto, isLoading, error } = useCafeById(idCafe);
+
+  const [molienda, setMolienda] = useState('');
+  const [peso, setPeso] = useState('');
   const [cantidadProducto, setCantidadProducto] = useState(1);
-  console.log(molienda);
 
-  console.log(producto);
+  const addCartItemMutation = useAddCartItem();
 
   if (isLoading) {
     return (
@@ -25,15 +27,86 @@ export const CafePage = () => {
     return <div>Error: {error.message}</div>;
   }
 
+  const varianteInicial = producto?.variantes?.[0];
+
+  const pesoSeleccionado = peso || varianteInicial?.peso || '';
+
+  const moliendaSeleccionada = molienda || varianteInicial?.molienda || '';
+
+  const pesos = [
+    ...new Set(producto.variantes.map((variante) => variante.peso)),
+  ];
+
+  const moliendas = [
+    ...new Set(producto.variantes.map((variante) => variante.molienda)),
+  ];
+
+  const existeCombinacion = (peso, molienda) => {
+    return producto.variantes.some(
+      (variante) => variante.peso === peso && variante.molienda === molienda,
+    );
+  };
+
   const varianteSeleccionada = producto.variantes.find(
-    (variante) => variante.peso === peso,
+    (variante) =>
+      variante.peso === pesoSeleccionado &&
+      variante.molienda === moliendaSeleccionada,
   );
 
-  const stockProducto = varianteSeleccionada.stock ?? 0;
-  const precioProducto = varianteSeleccionada.precio ?? 0;
+  const stockProducto = varianteSeleccionada?.stock ?? 0;
+
+  const precioProducto = varianteSeleccionada?.precio ?? 0;
+
+  const handlePesoChange = (nuevoPeso) => {
+    setPeso(nuevoPeso);
+
+    const existe = existeCombinacion(nuevoPeso, moliendaSeleccionada);
+
+    if (!existe) {
+      const nuevaVariante = producto.variantes.find(
+        (v) => v.peso === nuevoPeso,
+      );
+
+      setMolienda(nuevaVariante?.molienda ?? '');
+    }
+  };
+
+  const handleMoliendaChange = (nuevaMolienda) => {
+    setMolienda(nuevaMolienda);
+
+    const existe = existeCombinacion(pesoSeleccionado, nuevaMolienda);
+
+    if (!existe) {
+      const nuevaVariante = producto.variantes.find(
+        (v) => v.molienda === nuevaMolienda,
+      );
+
+      setPeso(nuevaVariante?.peso ?? '');
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (!varianteSeleccionada) {
+      return;
+    }
+
+    addCartItemMutation.mutate(
+      {
+        variante_id: varianteSeleccionada.id,
+
+        cantidad: Number(cantidadProducto),
+      },
+
+      {
+        onSuccess: () => {
+          navigate('/carrito');
+        },
+      },
+    );
+  };
 
   return (
-    <section className="w-[90%] mx-auto flex flex-col lg:flex-row mt-30 mb-15 gap-10">
+    <section className="w-[90%] mx-auto flex flex-col lg:flex-row pt-40 pb-5 gap-10">
       <div className="flex-1 flex justify-center items-center">
         <img
           className="h-auto lg:h-170"
@@ -71,13 +144,7 @@ export const CafePage = () => {
 
           <li>
             <strong>Presentación: </strong>
-            {producto.variantes
-              .map(
-                (tipo) =>
-                  tipo.molienda.charAt(0).toUpperCase() +
-                  tipo.molienda.slice(1),
-              )
-              .join(' o ')}
+            {moliendas.join(' o ')}
           </li>
 
           <li>
@@ -90,19 +157,15 @@ export const CafePage = () => {
             <strong>Puntaje: </strong>
             {producto.detalle.puntaje_cata} puntos
           </li>
+
           <li>
             <strong>Peso: </strong>
-            {producto.variantes
-              .map(
-                (tipo) =>
-                  tipo.peso.charAt(0).toUpperCase() + tipo.peso.slice(1),
-              )
-              .join(', ')}
+            {pesos.join(', ')}
           </li>
         </ul>
 
         <p id="precio" className="text-2xl font-bold">
-          ${precioProducto.toFixed(2)}
+          S/ {precioProducto.toFixed(2)}
         </p>
 
         <p
@@ -116,7 +179,7 @@ export const CafePage = () => {
                   : 'text-black'
           }`}
         >
-          {stockProducto} stock
+          {stockProducto} {stockProducto > 1 ? 'unidades' : 'unidad'}
         </p>
 
         <div className="flex flex-col gap-2">
@@ -126,15 +189,13 @@ export const CafePage = () => {
           <div className="text-sm flex items-center gap-1.5">
             <label>Molienda:</label>
             <select
-              className="border border-black/80 rounded-lg px-1 py-0.5"
-              value={molienda}
-              name="moliendaCompra"
-              id="moliendaCompra"
-              onChange={(e) => setMolienda(e.target.value)}
+              value={moliendaSeleccionada}
+              onChange={(e) => handleMoliendaChange(e.target.value)}
+              className="border p-2 rounded-lg"
             >
-              {producto.variantes.map((tipo) => (
-                <option key={tipo.molienda} value={tipo.molienda}>
-                  {tipo.molienda}
+              {moliendas.map((molienda) => (
+                <option key={molienda} value={molienda}>
+                  {molienda}
                 </option>
               ))}
             </select>
@@ -142,15 +203,13 @@ export const CafePage = () => {
           <div className="text-sm flex items-center gap-1.5">
             <label>Peso:</label>
             <select
-              className="border border-black/80 rounded-lg px-1 py-0.5"
-              value={peso}
-              name="pesoCompra"
-              id="pesoCompra"
-              onChange={(e) => setPeso(e.target.value)}
+              value={pesoSeleccionado}
+              onChange={(e) => handlePesoChange(e.target.value)}
+              className="border p-2 rounded-lg"
             >
-              {producto.variantes.map((tipo) => (
-                <option key={tipo.peso} value={tipo.peso}>
-                  {tipo.peso}
+              {pesos.map((peso) => (
+                <option key={peso} value={peso}>
+                  {peso}
                 </option>
               ))}
             </select>
@@ -161,18 +220,21 @@ export const CafePage = () => {
           <input
             className="border border-gray-700/60 w-12 text-center rounded-md"
             type="number"
-            defaultValue="1"
             min="1"
             name="cantidadCompra"
             value={cantidadProducto}
             onChange={(e) => setCantidadProducto(e.target.value)}
           />
-          <a
+          <button
+            onClick={handleAddToCart}
+            disabled={addCartItemMutation.isPending}
             className="text-xs text-center bg-emerald-800 text-white font-semibold border-2 border-black rounded-4xl px-4 py-2 transition-transform hover:scale-110 cursor-pointer"
             id="btn-agregar"
           >
-            Añadir al carrito
-          </a>
+            {addCartItemMutation.isPending
+              ? 'Agregando...'
+              : 'Añadir al carrito'}
+          </button>
         </div>
       </div>
     </section>

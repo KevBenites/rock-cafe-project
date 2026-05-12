@@ -1,14 +1,26 @@
-export default function ProductsFilter({ buttonItems }) {
+import { useSearchParams } from 'react-router';
+
+export default function ProductsFilter() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   return (
-    <div className="flex flex-wrap justify-center gap-3">
-      {buttonItems.map((item) => (
-        <button
-          key={item.btnId}
-          className="bg-[#9a5326] text-white text-sm font-medium rounded-4xl py-2 px-5 cursor-pointer hover:bg-[#9a5326] hover:text-white"
+    <div className="w-[90%] mx-auto flex justify-between items-center gap-3">
+      <div className="flex justify-center items-center gap-4">
+        <label htmlFor="cantidadProductos">N° productos</label>
+        <select
+          className="border rounded-lg p-1"
+          name=""
+          id="cantidadProductos"
+          onChange={(e) => {
+            searchParams.set('limit', e.target.value);
+            setSearchParams(searchParams);
+          }}
         >
-          {item.btnContent}
-        </button>
-      ))}
+          <option value="8">8</option>
+          <option value="16">16</option>
+          <option value="24">24</option>
+        </select>
+      </div>
     </div>
   );
 }

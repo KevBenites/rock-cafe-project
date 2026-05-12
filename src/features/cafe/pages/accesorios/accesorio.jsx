@@ -1,15 +1,11 @@
 import { useParams } from 'react-router';
-import { useMerchandisingById } from './hooks/use-merchandising-by-id';
+import { useAccesorioById } from './hooks/use-accesorio-by-id';
 import { useState } from 'react';
 
-export const MerchandisingPage = () => {
-  const { idMerchandising } = useParams();
+export const AccesorioPage = () => {
+  const { idAccesorio } = useParams();
 
-  const {
-    data: producto,
-    isLoading,
-    error,
-  } = useMerchandisingById(idMerchandising);
+  const { data: producto, isLoading, error } = useAccesorioById(idAccesorio);
 
   const [cantidadProducto, setCantidadProducto] = useState(1);
 
