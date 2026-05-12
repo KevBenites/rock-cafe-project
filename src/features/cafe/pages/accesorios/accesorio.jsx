@@ -1,11 +1,16 @@
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useAccesorioById } from './hooks/use-accesorio-by-id';
 import { useState } from 'react';
+import { useAddCartItem } from '../compra/hook/use-add-cart-item';
 
 export const AccesorioPage = () => {
   const { idAccesorio } = useParams();
 
+  const navigate = useNavigate();
+
   const { data: producto, isLoading, error } = useAccesorioById(idAccesorio);
+
+  const addCartItemMutation = useAddCartItem();
 
   const [cantidadProducto, setCantidadProducto] = useState(1);
 
@@ -21,8 +26,26 @@ export const AccesorioPage = () => {
     return <div>Error: {error.message}</div>;
   }
 
+  const variante = producto.variantes[0];
+
   const stockProducto = producto.variantes[0].stock;
   const precioProducto = producto.variantes[0].precio;
+
+  const handleAddToCart = () => {
+    addCartItemMutation.mutate(
+      {
+        variante_id: variante.variante_id,
+
+        cantidad: Number(cantidadProducto),
+      },
+
+      {
+        onSuccess: () => {
+          navigate('/carrito');
+        },
+      },
+    );
+  };
 
   return (
     <section className="w-[90%] mx-auto flex flex-col lg:flex-row pt-40 pb-5 gap-10">
@@ -30,7 +53,7 @@ export const AccesorioPage = () => {
         <img
           className="h-auto lg:h-170"
           src={`${producto.imagen_url}`}
-          alt={`Fotografia del empaque del cafe ${producto.nombre}`}
+          alt={`Fotografia del producto accesorio ${producto.nombre}`}
         />
       </div>
 
@@ -71,12 +94,16 @@ export const AccesorioPage = () => {
             value={cantidadProducto}
             onChange={(e) => setCantidadProducto(e.target.value)}
           />
-          <a
+          <button
+            onClick={handleAddToCart}
+            disabled={addCartItemMutation.isPending}
             className="text-xs text-center bg-emerald-800 text-white font-semibold border-2 border-black rounded-4xl px-4 py-2 transition-transform hover:scale-110 cursor-pointer"
             id="btn-agregar"
           >
-            Añadir al carrito
-          </a>
+            {addCartItemMutation.isPending
+              ? 'Agregando...'
+              : 'Añadir al carrito'}
+          </button>
         </div>
       </div>
     </section>

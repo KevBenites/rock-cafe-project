@@ -3,8 +3,11 @@ import { useCart } from './hook/use-cart';
 import { useCreateOrder } from './hook/use-create-order';
 import { useRemoveCartItem } from './hook/use-remove-cart-item';
 import { useUpdateCartItem } from './hook/use-update-cart-item';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router';
 
 export const CompraPage = () => {
+  const navigate = useNavigate();
   const [shippingType, setShippingType] = useState('retiro');
 
   const [address, setAddress] = useState('');
@@ -16,6 +19,11 @@ export const CompraPage = () => {
   const updateItemMutation = useUpdateCartItem();
 
   const createOrderMutation = useCreateOrder();
+
+  const shippingCost =
+    shippingType === 'retiro' ? 0 : shippingType === 'lima' ? 15 : 25;
+
+  const total = Number(cart?.summary?.total_productos || 0) + shippingCost;
 
   const handleRemoveItem = (itemId) => {
     removeItemMutation.mutate(itemId);
@@ -40,10 +48,35 @@ export const CompraPage = () => {
   };
 
   const handleCreateOrder = () => {
-    createOrderMutation.mutate({
-      tipo_envio: shippingType,
-      direccion_envio: address,
-    });
+    if (shippingType !== 'retiro' && !address.trim()) {
+      toast.error('Debes ingresar una dirección');
+
+      return;
+    }
+
+    createOrderMutation.mutate(
+      {
+        tipo_envio: shippingType,
+        direccion_envio: address,
+        costo_envio: shippingCost,
+        total,
+      },
+      {
+        onSuccess: () => {
+          toast.success('¡Compra realizada correctamente ☕!');
+
+          setAddress('');
+
+          setShippingType('retiro');
+
+          navigate('/');
+        },
+
+        onError: () => {
+          toast.error('Ocurrió un error al procesar la compra');
+        },
+      },
+    );
   };
 
   if (isLoading) {
@@ -60,8 +93,6 @@ export const CompraPage = () => {
 
   return (
     <section className="w-[90%] max-w-7xl mx-auto mt-40 mb-20 flex flex-col gap-10 lg:flex-row">
-      {/* LEFT */}
-
       <div className="flex-1">
         <h1 className="text-4xl font-bold mb-8">Mi Carrito</h1>
 
@@ -245,20 +276,20 @@ export const CompraPage = () => {
             <div className="flex justify-between">
               <span>Envío</span>
 
-              <span>${cart.summary.costo_envio}</span>
+              <span>S/{shippingCost}</span>
             </div>
 
             <div className="flex justify-between text-xl font-bold border-t pt-4">
               <span>Total</span>
 
-              <span>${cart.summary.total}</span>
+              <span>${total}</span>
             </div>
           </div>
 
           <button
             onClick={handleCreateOrder}
             disabled={cart.items.length === 0 || createOrderMutation.isPending}
-            className="w-full bg-black text-white py-4 rounded-xl font-semibold disabled:opacity-50"
+            className="w-full bg-black text-white py-4 rounded-xl font-semibold disabled:opacity-50 cursor-pointer"
           >
             {createOrderMutation.isPending
               ? 'Procesando compra...'

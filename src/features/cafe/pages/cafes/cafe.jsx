@@ -64,7 +64,7 @@ export const CafePage = () => {
 
     if (!existe) {
       const nuevaVariante = producto.variantes.find(
-        (v) => v.peso === nuevoPeso,
+        (variante) => variante.peso === nuevoPeso,
       );
 
       setMolienda(nuevaVariante?.molienda ?? '');
@@ -78,7 +78,7 @@ export const CafePage = () => {
 
     if (!existe) {
       const nuevaVariante = producto.variantes.find(
-        (v) => v.molienda === nuevaMolienda,
+        (variante) => variante.molienda === nuevaMolienda,
       );
 
       setPeso(nuevaVariante?.peso ?? '');
